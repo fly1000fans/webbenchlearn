@@ -1,0 +1,64 @@
+getopt
+一、头文件包含：
+	#include <unistd.h>
+二、函数原型：
+	int getopt(int argc, char * const argv[], const char *optstring);
+	extern char *optarg;
+	extern int opterr, optind, optopt;
+三、参数：
+	int argc 				: 与传入main函数的argc相同，代表传入参数的个数
+	char * const argv[] 	: 与传入main函数的argv相同，存储输入参数的指针
+	const char *optstring 	: 要识别的命令行参数，如果参数之后带有冒号，则该参数后需要跟参数的值。
+四、函数返回值
+	1、如果在optstring中找到了输入选项，则返回该选项; 如果没有找到，则返回0x3f(?)
+	2、如果以下条件成立，函数返回-1，optind的值不变
+		argv[optind]  是空指针
+        *argv[optind] 非字符 -
+        argv[optind]  指向字符串"-" (只有字符 - )
+	3、如果以下条件成立，函数返回-1，optind的值加1
+		argv[optind]  指向字符串"--" (只有字符 -- )
+	4、如果输入的某个带参数的选项缺少了参数值
+		optstring的第一个字符如果是":"则返回":"
+		optstring的第一个字符如果不是":"则返回 "?"
+		无论以上哪两种情况，optopt的值都会被设置为缺少参数的选项
+	5、所有命令行选项都被处理完，返回 -1
+五、函数返回值（二）
+	1) 返回在optstring中找到的选项
+	2) 返回"?"	
+		1、在optstring中没有找到输入选项； 
+		2、输入选项缺少参数值，且optstring的第一个字符非:
+	3) 返回":"	输入选项缺少参数值，且optstring的第一个字符为 :
+	4) 返回 -1
+六、相关全局变量：
+	int  optind		argv中下一个将要被处理的成员的下标值，初始值为1，getopt每次解析完一个成员后，该值加1
+	int  optopt     在输入的字符选项缺少选项值的时候，optopt会指示出该选项
+	char *optarg	如果选项有值，则该变量指向选项值，指向的选项值有两种情况
+		1、如果选项是argv元素中的最后一个字符，则optargv指向下一个argv元素，optind加2。如果这时的optind的值与argc相等，则缺少了该选项的值，函数返回失败（？）
+		2、如果选项不是argv元素中的最后一个字符，则optargv指向剩下的字符，optind加1
+	int opterr		在opterr非零，且optstring的第一个字符不是":"的时候，函数会打印错误调试信息
+
+getopt_long	
+一、头文件包含：	
+#include <getopt.h>
+二、函数原型：
+int getopt_long(int argc, char * const argv[],
+                  const char *optstring,
+                  const struct option *longopts, int *longindex);
+三、参数：
+	argc、argv、optstring				同getopt
+	const struct option *longopts（longopts指向的静态数组必须以零结尾，用于作为数组的结束标志）		
+		struct option {
+				   const char *name;			//长选项名字(字符串)
+				   int         has_arg;			//常选项是否带参数	
+												//no_argument  (or  0)  不带参数
+												//required_argument (or 1) 需要参数
+												//optional_argument (or 2) 参数可选
+				   int        *flag;			//指定val值如何返回
+												//如果flag非空，在找到该长选项的情况下，函数返回零，flag指向的值被置为val
+												//如果flag为空，在找到该长选项的情况下，函数返回val
+				   int         val;				//函数的返回值或加载到flag中的值
+			   };
+	int *longindex						如果longindex不为空，则longindex指向的值被更新为longopts的下标
+四、函数返回值：
+	1、对于短选项，返回值与getopt相同
+	2、对于长选项，返回值为0或者val
