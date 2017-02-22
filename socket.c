@@ -26,6 +26,15 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+/****************************************************
+函数名称:Socket
+功能描述:与host名称的服务器建立socket tcp连接
+输入参数:const char *host   服务器名字
+         int clientPort     服务器端tcp端口
+输出参数:无
+返 回 值:大于零     socket fd
+         小于零     函数失败
+*****************************************************/
 int Socket(const char *host, int clientPort)
 {
     int sock;
@@ -37,22 +46,36 @@ int Socket(const char *host, int clientPort)
     ad.sin_family = AF_INET;
 
     inaddr = inet_addr(host);
+
+    /* 判断host是IP地址格式还是字符串格式 */
     if (inaddr != INADDR_NONE)
+    {
         memcpy(&ad.sin_addr, &inaddr, sizeof(inaddr));
+    }
     else
     {
         hp = gethostbyname(host);
         if (hp == NULL)
+        {
             return -1;
+        }
+        
         memcpy(&ad.sin_addr, hp->h_addr, hp->h_length);
     }
+    
     ad.sin_port = htons(clientPort);
     
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0)
+    {
         return sock;
+    }
+        
     if (connect(sock, (struct sockaddr *)&ad, sizeof(ad)) < 0)
+    {
         return -1;
+    }
+        
     return sock;
 }
 
